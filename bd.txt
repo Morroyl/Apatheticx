@@ -1,0 +1,111 @@
+В db.js поменять имя сервера
+
+
+Код для создания бд:
+
+CREATE DATABASE WarehouseRental;
+END;
+GO
+
+USE WarehouseRental;
+GO
+
+-- Таблица пользователей (без вставки данных)
+CREATE TABLE Users (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    fullName NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) UNIQUE NOT NULL,
+    phone NVARCHAR(20),
+    passwordHash NVARCHAR(255) NOT NULL,
+    role NVARCHAR(20) DEFAULT 'client', -- client, manager, director
+    createdAt DATETIME DEFAULT GETDATE()
+);
+
+-- Таблица складов
+CREATE TABLE Warehouses (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    name NVARCHAR(100) NOT NULL,
+    description NVARCHAR(500),
+    address NVARCHAR(200) NOT NULL,
+    area DECIMAL(10,2) NOT NULL,
+    pricePerMonth DECIMAL(10,2) NOT NULL,
+    category NVARCHAR(50),
+    imageUrl NVARCHAR(500) NULL
+);
+
+-- Таблица заявок на аренду
+CREATE TABLE LeaseRequests (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    userId INT NOT NULL,
+    warehouseId INT NOT NULL,
+    startDate DATETIME NOT NULL,
+    endDate DATETIME NOT NULL,
+    status NVARCHAR(20) DEFAULT 'pending', -- pending, confirmed, cancelled, completed
+    managerId INT NULL,
+    createdAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE NO ACTION,
+    FOREIGN KEY (warehouseId) REFERENCES Warehouses(id) ON DELETE NO ACTION,
+    FOREIGN KEY (managerId) REFERENCES Users(id) ON DELETE NO ACTION
+);
+
+-- Таблица сообщений
+CREATE TABLE Messages (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    leaseRequestId INT NOT NULL,
+    senderId INT NOT NULL,
+    message NVARCHAR(MAX) NOT NULL,
+    sentAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (leaseRequestId) REFERENCES LeaseRequests(id) ON DELETE CASCADE,
+    FOREIGN KEY (senderId) REFERENCES Users(id) ON DELETE NO ACTION
+);
+
+-- Таблица отзывов
+CREATE TABLE Reviews (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    userId INT NOT NULL,
+    warehouseId INT NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment NVARCHAR(1000),
+    createdAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (warehouseId) REFERENCES Warehouses(id) ON DELETE SET NULL
+);
+
+-- Архив завершённых заявок
+CREATE TABLE ArchivedLeaseRequests (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    originalId INT NOT NULL,
+    userId INT NOT NULL,
+    warehouseId INT NOT NULL,
+    startDate DATETIME NOT NULL,
+    endDate DATETIME NOT NULL,
+    status NVARCHAR(20) DEFAULT 'completed',
+    managerId INT NULL,
+    createdAt DATETIME DEFAULT GETDATE(),
+    archivedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Архив сообщений
+CREATE TABLE ArchivedMessages (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    originalId INT NOT NULL,
+    leaseRequestId INT NOT NULL,
+    senderId INT NOT NULL,
+    message NVARCHAR(MAX) NOT NULL,
+    sentAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (leaseRequestId) REFERENCES ArchivedLeaseRequests(id) ON DELETE CASCADE
+);
+GO
+
+INSERT INTO Warehouses (name, description, address, area, pricePerMonth, category, imageUrl) VALUES
+('Склад на Ленинградском шоссе', 'Отапливаемый склад, удобный подъезд для фур', 'г. Москва, Ленинградское шоссе, д. 10', 500.0, 800, 'сухой', '/images/warehouse1.jpg'),
+('Холодильный склад', 'Температурный режим от -5 до +5, стеллажи', 'г. Москва, ул. Промышленная, д. 3', 200.0, 1200, 'холодильник', '/images/warehouse2.jpg'),
+('Овощехранилище', 'Вентиляция, поддержание влажности', 'г. Москва, МКАД, 12-й км', 1000.0, 600, 'овощной', '/images/warehouse3.jpg'),
+('Склад на Каширском шоссе', 'Удобный подъезд, круглосуточная охрана', 'г. Москва, Каширское шоссе, д. 45', 800.0, 750, 'сухой', '/images/warehouse4.jpg'),
+('Склад-холодильник в Мытищах', 'Температурный режим от -10 до +5, стеллажи', 'г. Мытищи, ул. Индустриальная, д. 12', 350.0, 1100, 'холодильник', '/images/warehouse5.jpg'),
+('Отапливаемый склад на Южной', 'Отапливаемый, подъезд для фур, пандус', 'г. Москва, ул. Южная, д. 100', 600.0, 850, 'сухой', '/images/warehouse6.jpg'),
+('Овощехранилище в Новой Москве', 'Вентиляция, поддержание влажности, погрузочная техника', 'г. Москва, поселение Сосенское, промзона', 1200.0, 550, 'овощной', '/images/warehouse7.jpg'),
+('Неотапливаемый склад для стройматериалов', 'Большая территория, подъезд для фур, без отопления', 'г. Москва, МКАД, 15-й км', 2000.0, 400, 'сухой', '/images/warehouse8.jpg'),
+('Склад ответственного хранения', 'Услуги ответственного хранения, стеллажи, охрана', 'г. Москва, ул. Дорожная, д. 3', 450.0, 950, 'специальный', '/images/warehouse9.jpg'),
+('Таможенный склад', 'Склад временного хранения, под таможенные нужды', 'г. Москва, Варшавское шоссе, д. 60', 500.0, 1200, 'специальный', '/images/warehouse10.jpg');
+GO
