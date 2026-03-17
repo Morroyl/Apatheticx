@@ -3,11 +3,23 @@ const db = require('../models/db');
 const { isAuthenticated } = require('../middlewares/authMiddleware');
 const router = express.Router();
 
-// Вспомогательная функция для форматирования даты
+// Универсальная функция для преобразования даты из формы в формат SQL Server (YYYY-MM-DD HH:mm:ss)
 function formatDateForSQL(dateString) {
+    if (!dateString) return null;
+    // Пытаемся создать объект Date из строки
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return null;
-    return date.toISOString().replace('T', ' ').substring(0, 19);
+    if (isNaN(date.getTime())) {
+        console.error('Неверный формат даты:', dateString);
+        return null;
+    }
+    // Форматируем в YYYY-MM-DD HH:mm:ss (время 00:00:00 для date, или точное для datetime-local)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = '00';
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 // Получить список складов для выпадающего списка
