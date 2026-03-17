@@ -25,9 +25,9 @@ body.light-theme {
     --bg-primary: #f7faff;
     --bg-secondary: #ffffff;
     --bg-card: rgba(66, 153, 225, 0.05);
-    --text-primary: #ffffff;
+    --text-primary: #0084ff;
     --text-secondary: #2c5282;
-    --text-muted: #718096;
+    --text-muted: #719696;
     --border-color: rgba(66, 153, 225, 0.2);
     --accent-primary: #3182ce;
     --accent-secondary: #2c5282;
